@@ -1,5 +1,7 @@
 from lxml import etree
-import uuid
+from Stage import Stage
+from Display import Display
+from Font import Font
 
 tree = etree.parse('ObjOld.xml')
 root = tree.getroot()
@@ -11,42 +13,6 @@ def getChildArray(element, tag):
             for child_inputs in child:
                 arr.append([child_inputs.get('stage'), child_inputs.get('narrative')])
     return arr
-
-def createXMLStage(name, type, narrative = '', subsheet='', loginhibit='', x='', y='', w='', h='', color='000000'):
-    stageXMLItem= etree.Element('stage')
-    stageXMLItem.set('stageid', str(uuid.uuid4()))
-    stageXMLItem.set('name', name)
-    stageXMLItem.set('type', type)
-
-    if narrative is not None and narrative != '':
-        narrative_stageXMLItem = etree.Element('narrative')
-        narrative_stageXMLItem.text = narrative
-        stageXMLItem.append(narrative_stageXMLItem)
-    if subsheet is not None and subsheet != '':
-        subsheetid_stageXMLItem = etree.Element('subsheetid')
-        subsheetid_stageXMLItem.text = subsheet
-        stageXMLItem.append(subsheetid_stageXMLItem)
-
-    if loginhibit is not None and loginhibit != '':
-        loginhibit_stageXMLItem = etree.Element('loginhibit')
-        loginhibit_stageXMLItem.set('onsuccess', loginhibit)
-        stageXMLItem.append(loginhibit_stageXMLItem)
-
-    display_stageXMLItem = etree.Element('display')
-    display_stageXMLItem.set('x', x)
-    display_stageXMLItem.set('y', y)
-    display_stageXMLItem.set('w', w)
-    display_stageXMLItem.set('h', h)
-    stageXMLItem.append(display_stageXMLItem)
-
-    font_stageXMLItem = etree.Element('font')
-    font_stageXMLItem.set('family', 'Segoe UI')
-    font_stageXMLItem.set('size', '10')
-    font_stageXMLItem.set('style', 'Regular')
-    font_stageXMLItem.set('color', color)
-    stageXMLItem.append(font_stageXMLItem)
-
-    return stageXMLItem
 
 inputs = []
 outputs = []
@@ -84,19 +50,19 @@ for elem in root:
                 if item.tag == 'display':
                     item.set('x', str(process_info_x - 255))
                     item.set('y', str(process_info_y + i * 30 + 90))
-            root.append(createXMLStage(inputs[i][0] + '_Note', 'Note', inputs[i][1], subsheet_id, '', str(process_info_x - 165), str(process_info_y + i * 30 + 90), '90', '30'))
+            root.append(Stage(inputs[i][0] + '_Note', 'Note', inputs[i][1], subsheet_id, '', Display(str(process_info_x - 165), str(process_info_y + i * 30 + 90), '90', '30')))
     for i in range(len(outputs)):
         if elem.get('name') in outputs[i]:
             for item in elem:
                 if item.tag == 'display':
                     item.set('x', str(process_info_x - 45))
                     item.set('y', str(process_info_y + i * 30 + 90))
-            root.append(createXMLStage(outputs[i][0] + '_Note', 'Note', outputs[i][1], subsheet_id, '', str(process_info_x + 45), str(process_info_y + i * 30 + 90), '90', '30'))
+            root.append(Stage(outputs[i][0] + '_Note', 'Note', outputs[i][1], subsheet_id, '', Display(str(process_info_x + 45), str(process_info_y + i * 30 + 90), '90', '30')))
 
 
 # Создание блока для входящих параметров
-root.append(createXMLStage('Input', 'Block', '', subsheet_id, 'true', str(process_info_x - 300), str(process_info_y + 60), '195', str(len(inputs) * 45 - 15), '008000'))
+root.append(Stage('Input', 'Block', '', subsheet_id, 'true', Display(str(process_info_x - 300), str(process_info_y + 60), '195', str(len(inputs) * 45 - 15)), Font(color='008000')))
 # Создание блока для исходящих параметров
-root.append(createXMLStage('Output', 'Block', '', subsheet_id, 'true', str(process_info_x - 90), str(process_info_y + 60), '195', str(len(outputs) * 45 - 15), 'FF9900'))
+root.append(Stage('Output', 'Block', '', subsheet_id, 'true', Display(str(process_info_x - 90), str(process_info_y + 60), '195', str(len(outputs) * 45 - 15)), Font(color='FF9900')))
 
 tree.write('ObjNew.xml')
